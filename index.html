@@ -40,13 +40,14 @@
     <div class="grid">
       <div class="card"><div class="body">
         <h2 style="font-size:16px; margin:0 0 10px;">New treatment</h2>
-        <div class="row2">
-          <div>
-            <label>Responders / Sample size</label>
-            <div class="row2">
-              <input id="x" type="number" min="0" step="1" value="10" />
-              <input id="n" type="number" min="1" step="1" value="30" />
-            </div>
+        <div class="row2" style="align-items:end;">
+          <div style="display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; color:var(--muted);">Responders</span>
+            <input id="x" type="number" min="0" step="1" value="10" />
+          </div>
+          <div style="display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center;">
+            <span style="font-size:12px; color:var(--muted);">Sample size</span>
+            <input id="n" type="number" min="1" step="1" value="30" />
           </div>
         </div>
 
@@ -97,16 +98,7 @@
             <input id="marginPct" type="number" min="0" max="50" step="0.1" value="0" />
             <input id="marginPctSlider" type="range" min="0" max="50" step="0.1" value="0" />
           </div>
-          <div>
-            <label>Quick presets</label>
-            <div class="btnbar" id="margin-presets">
-              <button class="btn" data-m="0">0%</button>
-              <button class="btn" data-m="5">5%</button>
-              <button class="btn" data-m="10">10%</button>
-              <button class="btn" data-m="15">15%</button>
-              <button class="btn" data-m="20">20%</button>
-            </div>
-          </div>
+          <div></div>
         </div>
         <div class="sp"></div>
         <div class="warn" id="warn"></div>
@@ -116,8 +108,8 @@
         <h2 style="font-size:16px; margin:0 0 10px;">Results</h2>
         <div class="big" id="probtext">0.00%</div>
         <div class="kpi">
-          <div class="pill"><div class="title">Posterior mean (new)</div><div class="val" id="postmean">–</div></div>
-          <div class="pill"><div class="title">95% range (new)</div><div class="val" id="ci">–</div></div>
+          <div class="pill"><div class="title">Estimated true ORR</div><div class="val" id="postmean">–</div></div>
+          <div class="pill"><div class="title">95% credible range</div><div class="val" id="ci">–</div></div>
         </div>
         <div class="sp"></div>
         <canvas id="plot" width="700" height="260" aria-label="Posterior density plot for new"></canvas>
@@ -126,7 +118,7 @@
       <details>
         <summary>Notes for statisticians</summary>
         <div class="body" style="padding:0; margin-top:8px;">
-          <p class="note">New treatment: Binomial likelihood with Beta prior. “No expectation” uses Beta(1,1). “Set expectation” uses mean m and effective sample size s (ESS) to set Beta(ms, (1−m)s). Historical benchmark is modeled as θ_hist ∼ Beta(m0·μ0, m0·(1−μ0)), where μ0 is the entered percent and m0 is chosen by strength (weak=20, moderate=60, strong=200). We report P(θ_new > θ_hist + δ) via Monte Carlo sampling, where δ is the user-entered absolute margin (percentage points). The 95% range shown is a 95% credible interval from the sample quantiles.</p>
+          <p class="note">New treatment: Binomial likelihood with Beta prior. “No expectation” uses Beta(1,1). “Set expectation” uses mean m and effective sample size s (ESS) to set Beta(ms, (1−m)s). Historical benchmark is modeled as θ<sub>hist</sub> ∼ Beta(m₀·μ₀, m₀·(1−μ₀)), where μ₀ is the entered percent and m₀ is chosen by strength (weak=20, moderate=60, strong=200). We report P(θ<sub>new</sub> > θ<sub>hist</sub> + δ) via Monte Carlo sampling, where δ is the user-entered absolute margin (percentage points). The 95% range shown is a 95% credible interval from the sample quantiles.</p>
         </div>
       </details>
     </div>
@@ -170,7 +162,7 @@ const els = {
   pNone: document.getElementById('prior-none'), pExpect: document.getElementById('prior-expect'), priorPanel: document.getElementById('prior-expect-panel'),
   priorMeanPct: document.getElementById('prior-mean-pct'), priorStrengthCat: document.getElementById('prior-strength-cat'),
   thrPct: document.getElementById('thrPct'), thrPctSlider: document.getElementById('thrPctSlider'), histStrengthCat: document.getElementById('hist-strength-cat'),
-  marginPct: document.getElementById('marginPct'), marginPctSlider: document.getElementById('marginPctSlider'), marginPresets: document.getElementById('margin-presets'),
+  marginPct: document.getElementById('marginPct'), marginPctSlider: document.getElementById('marginPctSlider'),
   probtext: document.getElementById('probtext'), postmean: document.getElementById('postmean'), ci: document.getElementById('ci'), plot: document.getElementById('plot'), warn: document.getElementById('warn')
 };
 
@@ -221,16 +213,11 @@ function bind(){
   // Core inputs
   [els.x, els.n, els.priorMeanPct, els.priorStrengthCat, els.histStrengthCat].forEach(e=> e.addEventListener('input', compute));
 
-  // Two-way bind historical % and margin % number <-> slider
+  // Two-way bindings
   els.thrPct.addEventListener('input', ()=>{ els.thrPctSlider.value = els.thrPct.value; compute(); });
   els.thrPctSlider.addEventListener('input', ()=>{ els.thrPct.value = els.thrPctSlider.value; compute(); });
   els.marginPct.addEventListener('input', ()=>{ els.marginPctSlider.value = els.marginPct.value; compute(); });
   els.marginPctSlider.addEventListener('input', ()=>{ els.marginPct.value = els.marginPctSlider.value; compute(); });
-
-  // Quick preset buttons for margin
-  els.marginPresets.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{ const v = btn.getAttribute('data-m'); els.marginPct.value = v; els.marginPctSlider.value = v; compute(); });
-  });
 }
 
 bind();
